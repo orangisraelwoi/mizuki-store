@@ -824,7 +824,7 @@
                         <td>${o.durationLabel}</td>
                         <td style="font-weight:700;color:var(--primary);">${fmt(o.amount)}</td>
                         <td><span class="status-badge status-${o.status}">${o.status}</span></td>
-                        <td>${o.status === 'pending' ? `<button class="btn-sm" style="background:var(--success);color:#fff;" onclick="verifyOrder('${o.id}')"><i class="fas fa-check"></i> Verifikasi</button>` : `<span class="key-display">${o.key}</span>`}</td>
+                        <td>${o.status === 'pending' ? `<button class="btn-sm" style="background:var(--success);color:#fff;" onclick="verifyOrder('${o.id}')"><i class="fas fa-check"></i> Auto</button>` : `<span class="key-display">${o.key}</span>`}</td>
                     </tr>`).join('') + '</tbody></table>';
             };
             
@@ -847,7 +847,7 @@
             order.status = 'completed';
             order.key = assignedKey;
             saveOrders(orders);
-            showToast('success','Verifikasi Sukses',`Order ${orderId} diverifikasi. Key: ${assignedKey}`);
+            showToast('success','Auto Sukses',`Order ${orderId} diverifikasi. Key: ${assignedKey}`);
             renderAdminOrders();
             renderInventory();
             updateStockUI();
@@ -937,6 +937,63 @@
             if (e.key === 'Escape') closeQris(); 
         });
     </script>
+<!-- TOTAL PEMBELIAN -->
+<div style="position:fixed; bottom:20px; right:20px; background:#8b5cf6; color:#fff; padding:15px; border-radius:12px; z-index:999;">
+  💰 Total Penjualan: <span id="totalPenjualan">0</span> orders
+</div>
+<script>
+function updateTotal() {
+  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+  const total = orders.filter(o => o.status === "COMPLETED").length;
+  document.getElementById("totalPenjualan").innerText = total;
+}
+updateTotal();
+setInterval(updateTotal, 5000);
+</script>
 </body>
 </html>
 
+
+<!-- ULASAN SECTION -->
+<div id="ulasanSection" style="padding:20px; background:#1a1a2e; color:#fff; margin-top:20px; border-radius:12px;">
+  <h3>⭐ Ulasan Pembeli</h3>
+  <div id="ulasanList"></div>
+  <input type="text" id="ulasanNama" placeholder="Username" style="padding:10px; margin:5px; border-radius:8px; border:none;">
+  <select id="ulasanRating" style="padding:10px; margin:5px; border-radius:8px;">
+    <option value="5">⭐⭐⭐⭐⭐</option>
+    <option value="4">⭐⭐⭐⭐</option>
+    <option value="3">⭐⭐⭐</option>
+    <option value="2">⭐⭐</option>
+    <option value="1">⭐</option>
+  </select>
+  <br>
+  <textarea id="ulasanComment" placeholder="Tulis ulasan..." style="padding:10px; margin:5px; width:90%; border-radius:8px; border:none;"></textarea>
+  <br>
+  <button onclick="tambahUlasan()" style="padding:10px 20px; background:#8b5cf6; color:#fff; border:none; border-radius:8px; margin-top:10px;">Kirim Ulasan</button>
+</div>
+
+<script>
+function tambahUlasan() {
+  const nama = document.getElementById('ulasanNama').value;
+  const rating = document.getElementById('ulasanRating').value;
+  const comment = document.getElementById('ulasanComment').value;
+  if (!nama || !comment) return alert('Isi semua field!');
+  
+  const ulasan = JSON.parse(localStorage.getItem('ulasan') || '[]');
+  ulasan.push({nama, rating, comment, date: new Date().toLocaleDateString()});
+  localStorage.setItem('ulasan', JSON.stringify(ulasan));
+  tampilUlasan();
+}
+
+function tampilUlasan() {
+  const ulasan = JSON.parse(localStorage.getItem('ulasan') || '[]');
+  const html = ulasan.map(u => `
+    <div style="background:#16213e; padding:10px; margin:5px 0; border-radius:8px;">
+      <strong>${u.nama}</strong> ${'⭐'.repeat(u.rating)} <small>${u.date}</small>
+      <p>${u.comment}</p>
+    </div>
+  `).join('');
+  document.getElementById('ulasanList').innerHTML = html;
+}
+tampilUlasan();
+</script>
