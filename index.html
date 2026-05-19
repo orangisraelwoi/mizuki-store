@@ -741,6 +741,40 @@
                     }
                 }
                 
+if (timeLeft <= 0) {
+    stopTimer();
+    // Extra check kalo QRISpy udah detect payment
+    (async () => {
+        try {
+            const res = await fetch(`https://mizuki-proxy.rezin2126.workers.dev/check-status?qrisId=${currentQrisId}`);
+            const data = await res.json();
+            if (data.data?.payment_status === 'paid' || data.data?.paid_at) {
+                document.getElementById('statusPaid').classList.add('show');
+                // Auto verify key
+                const orders = getOrders();
+                const order = orders.find(o => o.id === currentOrderId);
+                if (order && order.status === 'pending') {
+                    const prodKey = order.product.includes('Drip') ? 'drip' : 'mod';
+                    const keys = getKeys();
+                    const dur = order.duration;
+                    if (keys[prodKey][dur] && keys[prodKey][dur].length > 0) {
+                        const assignedKey = keys[prodKey][dur].shift();
+                        saveKeys(keys);
+                        order.status = 'completed';
+                        order.key = assignedKey;
+                        saveOrders(orders);
+                        showToast('success','Pembayaran Berhasil!', `Key: ${assignedKey}`);
+                        updateStockUI();
+                    }
+                }
+            } else {
+                document.getElementById('statusTimeout').classList.add('show');
+            }
+        } catch (e) {
+            document.getElementById('statusTimeout').classList.add('show');
+        }
+    })();
+}
                 if (timeLeft <= 0) {
                     stopTimer();
                     document.getElementById('statusTimeout').classList.add('show');
