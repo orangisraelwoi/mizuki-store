@@ -22,7 +22,6 @@ exports.handler = async (event) => {
       };
     }
 
-    // ===== HARDCODE TOKEN (bypass env var yang ga kebaca) =====
     const QRISPY_TOKEN = "cki_FTZQEtSyNdjC3TAST7Gy4U73kWEwKLQ8BzjxAHfKqQQwti2L";
 
     const res = await fetch("https://api.qrispy.id/api/payment/qris/generate", {
@@ -61,18 +60,19 @@ exports.handler = async (event) => {
 
     const qris = data.data;
 
+    // ===== RETURN FORMAT SNAKE_CASE (sesuai frontend lama) =====
     return {
       statusCode: 200,
       headers: { "Access-Control-Allow-Origin": "*" },
       body: JSON.stringify({
         success: true,
-        qrisId: qris.qris_id,
-        qrImageUrl: qris.qris_image_url,
-        qrBase64: qris.qris_image_base64,
+        qris_id: qris.qris_id,
+        qris_image_url: qris.qris_image_url,
+        qris_image_base64: qris.qris_image_base64,
         amount: qris.amount,
-        expiredAt: qris.expired_at,
-        expiresIn: qris.expires_in_seconds,
-        reference: qris.payment_reference
+        expired_at: qris.expired_at,
+        expires_in_seconds: qris.expires_in_seconds,
+        payment_reference: qris.payment_reference
       })
     };
 
