@@ -997,3 +997,77 @@ function tampilUlasan() {
 }
 tampilUlasan();
 </script>
+
+<!-- ⭐ ULASAN SECTION -->
+<div id="ulasanSection" style="padding:24px; background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%); color:#fff; margin:20px; border-radius:16px; border:1px solid rgba(139,92,246,0.2);">
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+    <span style="font-size:24px;">💬</span>
+    <h3 style="margin:0; color:#e2e8f0;">Ulasan Pembeli</h3>
+    <div style="margin-left:auto; background:rgba(139,92,246,0.2); padding:6px 14px; border-radius:20px; font-size:14px;">
+      ⭐ <span id="avgRating">0.0</span>/5 (<span id="totalUlasan">0</span>)
+    </div>
+  </div>
+  <div id="ulasanList" style="max-height:400px; overflow-y:auto;"></div>
+  <div style="margin-top:20px; padding:20px; background:rgba(0,0,0,0.2); border-radius:12px;">
+    <input type="text" id="ulasanNama" placeholder="Username" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:none; background:#0f172a; color:#fff; font-size:14px; box-sizing:border-box;">
+    <div style="display:flex; gap:8px; margin-bottom:10px; font-size:28px; cursor:pointer;" id="starContainer">
+      <span onclick="setRating(1)" class="star" style="color:#fbbf24;">☆</span>
+      <span onclick="setRating(2)" class="star" style="color:#fbbf24;">☆</span>
+      <span onclick="setRating(3)" class="star" style="color:#fbbf24;">☆</span>
+      <span onclick="setRating(4)" class="star" style="color:#fbbf24;">☆</span>
+      <span onclick="setRating(5)" class="star" style="color:#fbbf24;">☆</span>
+    </div>
+    <input type="hidden" id="ulasanRating" value="0">
+    <textarea id="ulasanComment" placeholder="Tulis pengalaman belanja lo..." style="width:100%; padding:12px; border-radius:10px; border:none; background:#0f172a; color:#fff; font-size:14px; min-height:80px; resize:vertical; box-sizing:border-box;"></textarea>
+    <button onclick="tambahUlasan()" style="margin-top:12px; padding:14px; background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:#fff; border:none; border-radius:10px; font-weight:600; cursor:pointer; width:100%; font-size:16px;">Kirim Ulasan ⭐</button>
+  </div>
+</div>
+
+<script>
+let currentRating = 0;
+function setRating(n) {
+  currentRating = n;
+  document.getElementById('ulasanRating').value = n;
+  const stars = document.querySelectorAll('.star');
+  stars.forEach((s,i) => s.innerHTML = i < n ? '★' : '☆');
+}
+function tambahUlasan() {
+  const nama = document.getElementById('ulasanNama').value.trim();
+  const comment = document.getElementById('ulasanComment').value.trim();
+  if (!nama || !comment || currentRating === 0) {
+    alert('Isi username, rating, dan komentar dulu bre 😤');
+    return;
+  }
+  const ulasan = JSON.parse(localStorage.getItem('mizukiUlasan') || '[]');
+  ulasan.unshift({nama, rating: currentRating, comment, date: new Date().toLocaleDateString('id-ID'), verified: true});
+  localStorage.setItem('mizukiUlasan', JSON.stringify(ulasan));
+  document.getElementById('ulasanNama').value = '';
+  document.getElementById('ulasanComment').value = '';
+  setRating(0);
+  tampilUlasan();
+  alert('Ulasan berhasil ditambahkan ⭐');
+}
+function tampilUlasan() {
+  const ulasan = JSON.parse(localStorage.getItem('mizukiUlasan') || '[]');
+  const total = ulasan.length;
+  const avg = total > 0 ? (ulasan.reduce((a,b) => a + b.rating, 0) / total).toFixed(1) : '0.0';
+  document.getElementById('avgRating').textContent = avg;
+  document.getElementById('totalUlasan').textContent = total;
+  document.getElementById('ulasanList').innerHTML = ulasan.map(u => `
+    <div style="padding:16px; margin-bottom:12px; background:rgba(255,255,255,0.03); border-radius:12px; border-left:3px solid #8b5cf6;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#8b5cf6,#ec4899); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px; color:#fff;">${u.nama[0].toUpperCase()}</div>
+          <div>
+            <div style="font-weight:600; font-size:14px; color:#fff;">${u.nama} ${u.verified ? '✅' : ''}</div>
+            <div style="font-size:12px; color:#94a3b8;">${u.date}</div>
+          </div>
+        </div>
+        <div style="color:#fbbf24; font-size:16px; letter-spacing:2px;">${'★'.repeat(u.rating)}${'☆'.repeat(5-u.rating)}</div>
+      </div>
+      <p style="margin:0; color:#cbd5e1; font-size:14px; line-height:1.6;">${u.comment}</p>
+    </div>
+  `).join('');
+}
+tampilUlasan();
+</script>
