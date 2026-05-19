@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIZUKI STORE 🟣 | Drip Client Official</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap');
+
+        :root {
+            --bg: #050508;
+            --surface: rgba(15, 15, 25, 0.7);
+            --surface-solid: #0f0f19;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --primary: #a855f7;
+            --primary-glow: rgba(168, 85, 247, 0.4);
+            --secondary: #ec4899;
+            --accent: #8b5cf6;
+            --text: #f1f1f4;
+            --text-dim: #7c7c8e;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --qris-bg: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+            z-index: -2;
+            animation: bgPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Floating Orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: orbFloat 12s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: var(--primary); top: -10%; left: -10%; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: var(--secondary); bottom: -5%; right: -5%; animation-delay: -4s; }
+        .orb-3 { width: 250px; height: 250px; background: var(--accent); top: 40%; left: 60%; animation-delay: -8s; }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            background: rgba(5, 5, 8, 0.6);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            letter-spacing: -0.5px;
+        }
+        .logo i { -webkit-text-fill-color: var(--primary); font-size: 1.5rem; }
+        .logo span { font-size: 0.7rem; font-weight: 400; color: var(--text-dim); -webkit-text-fill-color: var(--text-dim); margin-left: 0.5rem; letter-spacing: 2px; text-transform: uppercase; }
+
+        .cart-btn {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+            padding: 0.7rem 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+        }
+        .cart-btn:hover { border-color: var(--primary); box-shadow: 0 0 20px var(--primary-glow); }
+        .cart-count {
+            position: absolute;
+            top: -6px; right: -6px;
+            background: var(--secondary);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 900;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Hero Text */
+        .hero-text {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeUp 0.8s ease-out;
+        }
+        .hero-text h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.75rem;
+            letter-spacing: -1px;
+        }
+        .hero-text p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Product Card - Solo Premium */
+        .solo-product {
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeUp 0.8s ease-out 0.2s both;
+            backdrop-filter: blur(10px);
+        }
+        .solo-product::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            padding: 1.5px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .solo-product:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(168, 85, 247, 0.25);
+        }
+        .solo-product.out-of-stock {
+            opacity: 0.55;
+            filter: grayscale(0.9) brightness(0.7);
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .solo-product.out-of-stock::before {
+            background: linear-gradient(135deg, var(--danger), #555);
+        }
+
+        .product-image-area {
+            height: 240px;
+            background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(236,72,153,0.15));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .product-image-area::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+        .product-icon {
+            font-size: 5rem;
+            z-index: 2;
+            filter: drop-shadow(0 0 30px rgba(168,85,247,0.5));
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .stock-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 3;
+            backdrop-filter: blur(10px);
+        }
+        .stock-badge.empty {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            animation: pulseRed 2s infinite;
+        }
+        @keyframes pulseRed {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.2); }
+            50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+        }
+
+        .product-body { padding: 1.75rem; }
+        .product-tag {
+            display: inline-block;
+            padding: 0.35rem 0.9rem;
+            border-radius: 20px;
+            background: rgba(168, 85, 247, 0.1);
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+        }
+        .product-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.3px; }
+        .product-desc { color: var(--text-dim); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem; }
+        .product-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1.5rem;
+        }
+        .price-tag { display: flex; flex-direction: column; }
+        .price-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.25rem; }
+        .price-value {
+            font-size: 1.75rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stock-info { text-align: right; }
+        .stock-number { font-size: 1.25rem; font-weight: 800; color: var(--danger); }
+        .stock-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
+
+        .action-btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        .action-btn:hover::before { transform: translateX(100%); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            box-shadow: 0 4px 20px rgba(168, 85, 247, 0.3);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(168, 85, 247, 0.5);
+        }
+        .btn-primary:disabled {
+            background: var(--surface-solid);
+            color: var(--text-dim);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .sabar-box {
+            margin-top: 1rem;
+            padding: 0.875rem;
+            border-radius: 12px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--danger);
+            font-weight: 700;
+            font-size: 0.9rem;
+            animation: shake 3s infinite;
+        }
+        @keyframes shake {
+            0%, 90%, 100% { transform: translateX(0); }
+            92% { transform: translateX(-3px); }
+            94% { transform: translateX(3px); }
+            96% { transform: translateX(-3px); }
+            98% { transform: translateX(3px); }
+        }
+
+        /* QRIS Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .qris-modal {
+            background: var(--surface-solid);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .modal-overlay.active .qris-modal { transform: scale(1) translateY(0); }
+        .qris-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--glass-border);
+            position: relative;
+        }
+        .qris-header h2 { font-size: 1.25rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .qris-header p { color: var(--text-dim); font-size: 0.85rem; margin-top: 0.25rem; }
+        .close-qris {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: none; border: none;
+            color: var(--text-dim); font-size: 1.25rem;
+            cursor: pointer; width: 36px; height: 36px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .close-qris:hover { background: rgba(255,255,255,0.05); color: var(--danger); }
+
+        .qris-body { padding: 1.5rem; }
+        .qris-frame {
+            background: var(--qris-bg);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px dashed var(--glass-border);
+            position: relative;
+        }
+        .qris-frame img {
+            width: 100%;
+            max-width: 280px;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+        }
+        .qris-placeholder {
+            width: 100%;
+            max-width: 280px;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 1rem;
+        }
+        .qris-placeholder i { font-size: 2.5rem; }
+        .qris-note {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-align: center;
+            margin-top: 0.75rem;
+        }
+
+        .timer-box {
+            background: rgba(168, 85, 247, 0.08);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .timer-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem; }
+        .timer-display {
+            font-size: 2.5rem;
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+            color: var(--primary);
+            text-shadow: 0 0 20px var(--primary-glow);
+            letter-spacing: 2px;
+        }
+        .timer-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; margin-top: 0.75rem; overflow: hidden; }
+        .timer-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 2px; transition: width 1s linear; width: 100%; }
+        .timer-bar-fill.danger { background: var(--danger); }
+        .timer-bar-fill.warning { background: var(--warning); }
+
+        .amount-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 1rem;
+        }
+        .amount-label { font-size: 0.85rem; color: var(--text-dim); }
+        .amount-value { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+
+        .detect-btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--success), #16a34a);
+            color: white;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .detect-btn:hover:not(:disabled) { transform: scale(1.02); box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3); }
+        .detect-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .cancel-btn {
+            width: 100%;
+            padding: 0.875rem;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--text-dim);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .cancel-btn:hover { border-color: var(--danger); color: var(--danger); background: rgba(239,68,68,0.05); }
+
+        .status-msg {
+            text-align: center;
+            padding: 0.75rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: none;
+        }
+        .status-msg.show { display: block; }
+        .status-msg.checking { background: rgba(168, 85, 247, 0.1); color: var(--primary); border: 1px solid rgba(168, 85, 247, 0.2); }
+        .status-msg.success { background: rgba(34, 197, 94, 0.1); color: var(--success); border: 1px solid rgba(34, 197, 94, 0.2); }
+        .status-msg.timeout { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 400;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .toast {
+            background: var(--surface-solid);
+            border: 1px solid var(--glass-border);
+            border-left: 3px solid var(--primary);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s ease-out;
+            min-width: 280px;
+            backdrop-filter: blur(10px);
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast-icon { font-size: 1.25rem; }
+        .toast-content { flex: 1; }
+        .toast-title { font-weight: 700; font-size: 0.9rem; }
+        .toast-message { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.15rem; }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--glass-border);
+            margin-top: auto;
+        }
+        footer i { color: var(--secondary); }
+
+        @media (max-width: 640px) {
+            .hero-text h1 { font-size: 2rem; }
+            .main-container { padding: 2rem 1rem; }
+            .solo-product { max-width: 100%; }
+            .timer-display { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-cube"></i>
+                MIZUKI STORE
+                <span>Official</span>
+            </div>
+            <button class="cart-btn" onclick="showToast('info','Info','Belum ada yang bisa dibeli bro 🗿')">
+                <i class="fas fa-shopping-bag"></i>
+                <span>Keranjang</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="hero-text">
+            <h1>MIZUKI STORE 🟣</h1>
+            <p>Official distributor Drip Client. Satu produk, satu tujuan, satu kebanggaan. Stock? Ya gitu deh.</p>
+        </div>
+
+        <div class="solo-product out-of-stock" id="productCard">
+            <div class="product-image-area">
+                <span class="stock-badge empty"><i class="fas fa-ban"></i> Habis</span>
+                <div class="product-icon">🟣</div>
+            </div>
+            <div class="product-body">
+                <span class="product-tag">Software</span>
+                <div class="product-title">Drip Client 🟣</div>
+                <div class="product-desc">
+                    Client premium buat yang ngerti aja. Fitur lengkap, update rutin, support lifetime. 
+                    Yang ga ngerti jangan beli, nanti nanya mulu di WA.
+                </div>
+                <div class="product-meta">
+                    <div class="price-tag">
+                        <span class="price-label">Harga</span>
+                        <span class="price-value">Rp 150.000</span>
+                    </div>
+                    <div class="stock-info">
+                        <div class="stock-number">0</div>
+                        <div class="stock-label">Stock Tersisa</div>
+                    </div>
+                </div>
+                <button class="action-btn btn-primary" disabled onclick="openQris()">
+                    <i class="fas fa-clock"></i> Sabar Stock Habis
+                </button>
+                <div class="sabar-box">
+                    <i class="fas fa-sad-tear"></i>
+                    Sabar stock habis bro, tunggu restock ya
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Made with <i class="fas fa-heart"></i> by Mizuki Store &bull; All transactions secured via QRIS AllPay</p>
+    </footer>
+
+    <!-- QRIS Modal -->
+    <div class="modal-overlay" id="qrisModal">
+        <div class="qris-modal">
+            <div class="qris-header">
+                <button class="close-qris" onclick="closeQris()"><i class="fas fa-times"></i></button>
+                <h2><i class="fas fa-qrcode" style="color: var(--primary);"></i> QRIS AllPay</h2>
+                <p>Scan & bayar via aplikasi e-wallet / banking lu</p>
+            </div>
+            <div class="qris-body">
+                <div class="timer-box">
+                    <div class="timer-label">⏳ Batas Waktu Pembayaran</div>
+                    <div class="timer-display" id="timerDisplay">05:00</div>
+                    <div class="timer-bar">
+                        <div class="timer-bar-fill" id="timerBar"></div>
+                    </div>
+                </div>
+
+                <div class="qris-frame">
+                    <!-- CARA GANTI QRIS: Lihat catatan final di bawah -->
+                    <div class="qris-placeholder" id="qrisPlaceholder">
+                        <i class="fas fa-image"></i>
+                        <span>QRIS AllPay<br><small style="font-weight:400">(Ganti ini dengan qris_allpay.jpg lu)</small></span>
+                    </div>
+                </div>
+                <div class="qris-note">
+                    <i class="fas fa-info-circle"></i> Scan pake DANA, OVO, Gopay, LinkAja, atau m-banking
+                </div>
+
+                <div class="amount-display">
+                    <span class="amount-label">Total Tagihan</span>
+                    <span class="amount-value">Rp 150.000</span>
+                </div>
+
+                <button class="detect-btn" id="detectBtn" onclick="checkPayment()">
+                    <i class="fas fa-radar"></i> Cek Status Pembayaran
+                </button>
+                <button class="cancel-btn" onclick="closeQris()">Batalkan Transaksi</button>
+
+                <div class="status-msg checking" id="statusChecking">
+                    <i class="fas fa-circle-notch fa-spin"></i> Memeriksa transaksi ke server AllPay...
+                </div>
+                <div class="status-msg success" id="statusSuccess">
+                    <i class="fas fa-check-circle"></i> Pembayaran terdeteksi! Order lu diproses.
+                </div>
+                <div class="status-msg timeout" id="statusTimeout">
+                    <i class="fas fa-times-circle"></i> Waktu habis bro. QRIS expired. Coba lagi ya.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        let timerInterval;
+        let timeLeft = 300;
+        let isChecking = false;
+
+        function showToast(type, title, message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            let icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'info' ? 'ℹ️' : '⚠️';
+            let borderColor = type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : 'var(--primary)';
+            toast.style.borderLeftColor = borderColor;
+            toast.innerHTML = `
+                <span class="toast-icon">${icon}</span>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function openQris() {
+            document.getElementById('qrisModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            startTimer();
+            showToast('info', 'QRIS Aktif!', 'Scan QR dan bayar dalam 5 menit ya bro 🔥');
+        }
+
+        function closeQris() {
+            document.getElementById('qrisModal').classList.remove('active');
+            document.body.style.overflow = '';
+            stopTimer();
+            resetStatus();
+        }
+
+        function startTimer() {
+            timeLeft = 300;
+            updateTimerDisplay();
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    stopTimer();
+                    showTimeout();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() { clearInterval(timerInterval); }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+            const pct = (timeLeft / 300) * 100;
+            const bar = document.getElementById('timerBar');
+            bar.style.width = pct + '%';
+            bar.className = 'timer-bar-fill';
+            if (pct < 20) bar.classList.add('danger');
+            else if (pct < 50) bar.classList.add('warning');
+        }
+
+        function showTimeout() {
+            document.getElementById('statusTimeout').classList.add('show');
+            document.getElementById('detectBtn').disabled = true;
+            document.getElementById('detectBtn').innerHTML = '<i class="fas fa-lock"></i> QRIS Expired';
+            showToast('error', 'Waktu Habis!', 'QRIS expired bro, refresh buat QR baru 🗿');
+        }
+
+        function resetStatus() {
+            document.getElementById('statusChecking').classList.remove('show');
+            document.getElementById('statusSuccess').classList.remove('show');
+            document.getElementById('statusTimeout').classList.remove('show');
+            const btn = document.getElementById('detectBtn');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-radar"></i> Cek Status Pembayaran';
+        }
+
+        function checkPayment() {
+            if (isChecking) return;
+            isChecking = true;
+            const btn = document.getElementById('detectBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Mengecek...';
+            document.getElementById('statusChecking').classList.add('show');
+            document.getElementById('statusSuccess').classList.remove('show');
+            document.getElementById('statusTimeout').classList.remove('show');
+
+            // Simulasi polling ke backend (2-4 detik)
+            setTimeout(() => {
+                document.getElementById('statusChecking').classList.remove('show');
+                const r = Math.random();
+                if (r < 0.3) {
+                    document.getElementById('statusSuccess').classList.add('show');
+                    btn.innerHTML = '<i class="fas fa-check"></i> Lunas!';
+                    showToast('success', 'Pembayaran Diterima!', 'Order lu diproses bro 🔥');
+                    stopTimer();
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-radar"></i> Cek Ulang';
+                    showToast('error', 'Belum Ditemukan', 'Transfer belum masuk bro, coba cek lagi nanti 🗿');
+                }
+                isChecking = false;
+            }, 2000 + Math.random() * 2000);
+        }
+
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeQris(); });
+    </script>
+</body>
+</html>
