@@ -1149,3 +1149,28 @@ function copySuccessKey() {
   });
 }
 </script>
+<script>
+function mockPaymentSuccess() {
+  const orders = getOrders();
+  const order = orders.find(o => o.id === currentOrderId);
+  if (order) {
+    const prodKey = order.product.includes('Drip') ? 'drip' : 'mod';
+    const keys = getKeys();
+    const dur = order.duration;
+    if (keys[prodKey][dur] && keys[prodKey][dur].length > 0) {
+      const assignedKey = keys[prodKey][dur].shift();
+      saveKeys(keys);
+      order.status = 'completed';
+      order.key = assignedKey;
+      saveOrders(orders);
+      stopTimer();
+      document.getElementById('statusPaid').classList.add('show');
+      showToast('success','[DEBUG] Payment Sukses!', 'Key: ' + assignedKey);
+      updateStockUI();
+      setTimeout(function() { closeQris(); showUserDashboard(); }, 2000);
+    } else {
+      showToast('error','Stock Habis','Tambahin key dulu di admin!');
+    }
+  }
+}
+</script>
