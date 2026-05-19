@@ -399,7 +399,6 @@
                     <span class="amount-value" id="qrisAmount">Rp 0</span>
                 </div>
                 <button class="cancel-btn" onclick="closeQris()">Batalkan</button>
-                <button onclick="mockPaymentSuccess()" style="margin-top:10px; padding:8px 12px; background:#22c55e; color:#fff; border:none; border-radius:8px; font-size:12px; cursor:pointer; width:100%;">[DEBUG] Mock Payment Sukses</button>
                 <div class="status-msg timeout" id="statusTimeout"><i class="fas fa-times-circle"></i> Waktu habis bro. QRIS expired. Coba order ulang.</div>
                 <div class="status-msg paid" id="statusPaid"><i class="fas fa-check-circle"></i> Pembayaran berhasil! Key otomatis dikirim ke My Keys.</div>
             </div>
@@ -974,7 +973,6 @@ if (timeLeft <= 0) {
         });
     </script>
 <script>
-function mockPaymentSuccess() {
   const orders = getOrders();
   const order = orders.find(o => o.id === currentOrderId);
   if (order) {
@@ -989,7 +987,6 @@ function mockPaymentSuccess() {
       saveOrders(orders);
       stopTimer();
       document.getElementById('statusPaid').classList.add('show');
-      showToast('success','[DEBUG] Payment Sukses!', 'Key: ' + assignedKey);
       updateStockUI();
       setTimeout(function() { closeQris(); showUserDashboard(); }, 2000);
     } else {
@@ -1176,7 +1173,6 @@ function copySuccessKey() {
 }
 </script>
 <script>
-function mockPaymentSuccess() {
   const orders = getOrders();
   const order = orders.find(o => o.id === currentOrderId);
   if (order) {
@@ -1191,7 +1187,6 @@ function mockPaymentSuccess() {
       saveOrders(orders);
       stopTimer();
       document.getElementById('statusPaid').classList.add('show');
-      showToast('success','[DEBUG] Payment Sukses!', 'Key: ' + assignedKey);
       updateStockUI();
       setTimeout(function() { closeQris(); showUserDashboard(); }, 2000);
     } else {
