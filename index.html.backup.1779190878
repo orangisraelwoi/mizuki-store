@@ -672,7 +672,7 @@
                 const expiresIn = Math.max(Math.max(data.expires_in_seconds || 300, 300) || 300, 300) || 300;
                 startTimer(expiresIn);
                 
-                showToast("success","🔑 Key Berhasil!","Pembayaran sukses! Key otomatis masuk ke My Keys ✅"); loadMyKeys(); updateTotalPenjualan(); showToast("info","QRIS Aktif"',`Order ${orderId}. Scan QR dan bayar! 🔥`);
+                showToast('info','QRIS Aktif',`Order ${orderId}. Scan QR dan bayar! 🔥`);
                 
             } catch (err) {
                 showToast('error','Error','Gagal generate QR: ' + err.message);
@@ -709,7 +709,7 @@
                             stopTimer();
                             document.getElementById('statusPaid').classList.add('show');
                             
-                            // Auto Auto - ambil key dari inventory
+                            // Auto verifikasi - ambil key dari inventory
                             const orders = getOrders();
                             const order = orders.find(o => o.id === currentOrderId);
                             if (order && order.status === 'pending') {
@@ -847,7 +847,7 @@
             order.status = 'completed';
             order.key = assignedKey;
             saveOrders(orders);
-            showToast('success','Auto Sukses',`Order ${orderId} diAuto. Key: ${assignedKey}`);
+            showToast('success','Auto Sukses',`Order ${orderId} diverifikasi. Key: ${assignedKey}`);
             renderAdminOrders();
             renderInventory();
             updateStockUI();
