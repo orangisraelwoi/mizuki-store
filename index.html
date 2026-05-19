@@ -635,7 +635,7 @@
             
             try {
                 // PANGGIL NETLIFY FUNCTION
-                const res = await fetch('/.netlify/functions/create-payment', {
+                const res = await fetch('https://mizuki-proxy.rezin2126.workers.dev/create-payment', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
