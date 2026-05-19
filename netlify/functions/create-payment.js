@@ -1,5 +1,4 @@
 exports.handler = async (event) => {
-  // CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -23,34 +22,38 @@ exports.handler = async (event) => {
       };
     }
 
+    // ===== HARDCODE TOKEN (bypass env var yang ga kebaca) =====
+    const QRISPY_TOKEN = "cki_FTZQEtSyNdjC3TAST7Gy4U73kWEwKLQ8BzjxAHfKqQQwti2L";
+
     const res = await fetch("https://api.qrispy.id/api/payment/qris/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-API-Token": process.env.QRISPY_API_TOKEN // isi pake token baru lo
+        "X-API-Token": QRISPY_TOKEN
       },
       body: JSON.stringify({
         amount: parseInt(amount),
         payment_reference: orderId || `Mizuki-${Date.now()}`,
-        return_url: "https://mizuki-store.netlify.app/success" // ganti domain lo
+        return_url: "https://mizuki-store.netlify.app/success"
       })
     });
 
-    // ===== FIX UTAMA: Handle response aneh =====
     const rawText = await res.text();
-    
+
     if (!res.ok) {
-      console.error("QRISpy HTTP Error:", res.status, rawText.substring(0, 300));
-      throw new Error(`QRISpy error ${res.status}: ${rawText.substring(0, 100)}`);
+      return {
+        statusCode: 200,
+        headers: { "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({
+          success: false,
+          debug: true,
+          httpStatus: res.status,
+          rawResponse: rawText.substring(0, 500)
+        })
+      };
     }
 
-    let data;
-    try {
-      data = JSON.parse(rawText);
-    } catch (e) {
-      console.error("Invalid JSON dari QRISpy:", rawText.substring(0, 500));
-      throw new Error("QRISpy return bukan JSON. Cek token/URL lo!");
-    }
+    const data = JSON.parse(rawText);
 
     if (data.status !== "success" || !data.data) {
       throw new Error(`QRISpy gagal: ${JSON.stringify(data)}`);
@@ -63,26 +66,21 @@ exports.handler = async (event) => {
       headers: { "Access-Control-Allow-Origin": "*" },
       body: JSON.stringify({
         success: true,
-        qrisId: qris.qris_id,              // penting buat check status
-        qrImageUrl: qris.qris_image_url,    // URL gambar QR
-        qrBase64: qris.qris_image_base64,   // alternatif base64
+        qrisId: qris.qris_id,
+        qrImageUrl: qris.qris_image_url,
+        qrBase64: qris.qris_image_base64,
         amount: qris.amount,
         expiredAt: qris.expired_at,
-        expiresIn: qris.expires_in_seconds,  // 900 detik = 15 menit
+        expiresIn: qris.expires_in_seconds,
         reference: qris.payment_reference
       })
     };
 
   } catch (err) {
-    console.error("Create Payment Error:", err);
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ 
-        success: false, 
-        error: err.message,
-        debug: "Cek Netlify Logs > Functions > create-payment"
-      })
+      body: JSON.stringify({ success: false, error: err.message })
     };
   }
 };
