@@ -824,7 +824,7 @@
                         <td>${o.durationLabel}</td>
                         <td style="font-weight:700;color:var(--primary);">${fmt(o.amount)}</td>
                         <td><span class="status-badge status-${o.status}">${o.status}</span></td>
-                        <td>${o.status === 'pending' ? `<button class="btn-sm" style="background:var(--success);color:#fff;" onclick="verifyOrder('${o.id}')"><i class="fas fa-check"></i> Verifikasi</button>` : `<span class="key-display">${o.key}</span>`}</td>
+                        <td>${ `<span class="key-display">${o.key}</span>`}</td>
                     </tr>`).join('') + '</tbody></table>';
             };
             
