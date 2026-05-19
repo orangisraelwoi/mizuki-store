@@ -273,7 +273,7 @@
         </div>
 
         <div class="product-grid">
-            <div class="product-card" id="cardDrip">
+            <div class="product-card" id="cardDrip" data-product="drip"><div id="status-drip" style="position:absolute; top:12px; left:12px; z-index:10; padding:4px 10px; border-radius:20px; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3);"><span style="color:#22c55e; font-weight:800; font-size:0.75rem;">🟢 Online</span></div>
                 <div class="product-image-area">
                     <span class="stock-badge empty" id="badgeDrip"><i class="fas fa-ban"></i> Habis</span>
                     <div class="product-icon">🟣</div>
@@ -288,7 +288,7 @@
                 </div>
             </div>
 
-            <div class="product-card" id="cardMod">
+            <div class="product-card" id="cardMod" data-product="mod"><div id="status-mod" style="position:absolute; top:12px; left:12px; z-index:10; padding:4px 10px; border-radius:20px; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3);"><span style="color:#22c55e; font-weight:800; font-size:0.75rem;">🟢 Online</span></div>
                 <div class="product-image-area" style="background:linear-gradient(135deg,rgba(236,72,153,0.2),rgba(245,158,11,0.15));">
                     <span class="stock-badge empty" id="badgeMod"><i class="fas fa-ban"></i> Habis</span>
                     <div class="product-icon" style="animation-delay:-1s;">🎛️</div>
@@ -320,7 +320,7 @@
             <h1><i class="fas fa-crown" style="color:var(--warning);"></i> Admin Dashboard</h1>
             <span class="admin-badge">Owner Access</span>
         </div>
-        <div class="admin-tabs">
+        <div class="admin-tabs"><button class="admin-tab" onclick="switchAdminTab('panelStatus')"><i class="fas fa-signal"></i> Status Mod</button>
             <button class="admin-tab active" onclick="switchTab('orders')" id="tabOrders"><i class="fas fa-list"></i> Orders</button>
             <button class="admin-tab" onclick="switchTab('inventory')" id="tabInventory"><i class="fas fa-box"></i> Inventory Key</button>
             <button class="admin-tab" onclick="switchTab('prices')" id="tabPrices"><i class="fas fa-tag"></i> Harga</button>
@@ -940,3 +940,118 @@
 </body>
 </html>
 
+<script>
+// Status Mod System
+const modStatusConfig = {
+  online: { color: '#22c55e', bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)', label: '🟢 Online' },
+  maintenance: { color: '#f59e0b', bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)', label: '🟡 Maintenance' },
+  down: { color: '#ef4444', bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', label: '🔴 Down' }
+};
+
+function getModStatus() {
+  return JSON.parse(localStorage.getItem('mizukiModStatus') || '{"drip":"online","mod":"online"}');
+}
+
+function setModStatus(product, status) {
+  const s = getModStatus();
+  s[product] = status;
+  localStorage.setItem('mizukiModStatus', JSON.stringify(s));
+  updateModStatusUI();
+}
+
+function updateModStatusUI() {
+  const s = getModStatus();
+  Object.keys(s).forEach(prod => {
+    const el = document.getElementById('status-' + prod);
+    if (el) {
+      const cfg = modStatusConfig[s[prod]];
+      el.style.background = cfg.bg;
+      el.style.borderColor = cfg.border;
+      el.innerHTML = '<span style="color:' + cfg.color + '; font-weight:800; font-size:0.75rem;">' + cfg.label + '</span>';
+    }
+  });
+}
+
+// Admin dropdown renderer
+function renderStatusDropdown(product) {
+  const s = getModStatus()[product] || 'online';
+  return '<select onchange="setModStatus(\'' + product + '\', this.value)" style="padding:6px 10px; border-radius:8px; border:none; background:#0f172a; color:#fff; font-size:0.85rem; cursor:pointer;">' +
+    '<option value="online"' + (s==='online'?' selected':'') + '>🟢 Online</option>' +
+    '<option value="maintenance"' + (s==='maintenance'?' selected':'') + '>🟡 Maintenance</option>' +
+    '<option value="down"' + (s==='down'?' selected':'') + '>🔴 Down</option>' +
+  '</select>';
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', updateModStatusUI);
+</script>
+<script>
+// Tambahin panel status mod setelah panelPrices
+document.addEventListener('DOMContentLoaded', function() {
+  const panelHTML = `
+    <div class="admin-panel" id="panelStatus">
+      <div class="admin-card">
+        <h3><i class="fas fa-signal" style="color:var(--primary);"></i> Status Mod</h3>
+        <p style="color:var(--text-dim); margin-bottom:1.5rem;">Atur status ketersediaan setiap mod. User bakal liat status ini di halaman utama.</p>
+        
+        <div style="display:grid; gap:1rem;">
+          <div style="background:var(--surface); border:1px solid var(--glass-border); border-radius:16px; padding:1.5rem; display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:1rem;">
+              <div style="width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg,#8b5cf6,#ec4899); display:flex; align-items:center; justify-content:center; font-size:1.5rem;">🟣</div>
+              <div>
+                <div style="font-weight:700; font-size:1.1rem;">Drip Client</div>
+                <div style="color:var(--text-dim); font-size:0.85rem;" id="statusText-drip">🟢 Online</div>
+              </div>
+            </div>
+            <div id="adminDropdown-drip"></div>
+          </div>
+          
+          <div style="background:var(--surface); border:1px solid var(--glass-border); border-radius:16px; padding:1.5rem; display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:1rem;">
+              <div style="width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg,#06b6d4,#3b82f6); display:flex; align-items:center; justify-content:center; font-size:1.5rem;">🎛️</div>
+              <div>
+                <div style="font-weight:700; font-size:1.1rem;">Mod Menu Pro</div>
+                <div style="color:var(--text-dim); font-size:0.85rem;" id="statusText-mod">🟢 Online</div>
+              </div>
+            </div>
+            <div id="adminDropdown-mod"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Insert after panelPrices
+  const pricesPanel = document.getElementById('panelPrices');
+  if (pricesPanel) {
+    pricesPanel.insertAdjacentHTML('afterend', panelHTML);
+    
+    // Render dropdowns
+    document.getElementById('adminDropdown-drip').innerHTML = renderStatusDropdown('drip');
+    document.getElementById('adminDropdown-mod').innerHTML = renderStatusDropdown('mod');
+    
+    // Update status text
+    updateAdminStatusText();
+  }
+});
+
+function updateAdminStatusText() {
+  const s = getModStatus();
+  const cfg = {
+    online: '🟢 Online',
+    maintenance: '🟡 Maintenance',
+    down: '🔴 Down'
+  };
+  const dripEl = document.getElementById('statusText-drip');
+  const modEl = document.getElementById('statusText-mod');
+  if (dripEl) dripEl.textContent = cfg[s.drip] || cfg.online;
+  if (modEl) modEl.textContent = cfg[s.mod] || cfg.online;
+}
+
+// Override setModStatus biar update admin text juga
+const originalSetModStatus = setModStatus;
+setModStatus = function(product, status) {
+  originalSetModStatus(product, status);
+  updateAdminStatusText();
+};
+</script>
