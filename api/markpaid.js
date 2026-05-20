@@ -10,32 +10,26 @@ module.exports = async function handler(req, res) {
 
   try {
     const { orderId } = req.body;
-    const order = await redis.get(`order:${orderId}`);
+    let order = await redis.get(`order:${orderId}`);
     
     if (!order) return res.status(404).json({ error: 'Order not found' });
-    if (order.status !== 'pending') return res.status(400).json({ error: 'Order already processed' });
     
-    // Mark as paid
+    // Force paid
     order.status = 'paid';
     await redis.set(`order:${orderId}`, order);
     
-    // Auto assign key
-    await fetch(`https://${req.headers.host}/api/assign-key`, {
+    // Assign key
+    const assignRes = await fetch(`https://${req.headers.host}/api/assign-key`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        orderId, 
-        phone: order.phone, 
-        productId: order.productId 
-      })
+      body: JSON.stringify({ orderId, phone: order.phone, productId: order.productId })
     });
-    
-    const updated = await redis.get(`order:${orderId}`);
+    const assignData = await assignRes.json();
     
     res.status(200).json({ 
       success: true, 
-      status: updated.status, 
-      key: updated.key,
+      status: 'completed',
+      key: assignData.key,
       orderId 
     });
   } catch (err) {
