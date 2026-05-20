@@ -1,6 +1,6 @@
 import redis from './_lib/redis.js';
 
-const QRISPY_API_URL = 'https://qris.id/api/v1'; // GANTI KALAU ENDPOINT BEDA
+const QRISPY_API_URL = 'https://api.qrispy.id';
 const QRISPY_TOKEN = process.env.QRISPY_API_TOKEN;
 
 export default async function handler(req, res) {
@@ -13,43 +13,47 @@ export default async function handler(req, res) {
 
   try {
     const { phone, productId, amount } = req.body;
-    
-    // Generate internal Order ID
     const orderId = 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6).toUpperCase();
 
     // Panggil QRISpy API
-    const qrisRes = await fetch(`${QRISPY_API_URL}/create`, {
+    const qrisRes = await fetch(`${QRISPY_API_URL}/api/payment/qris/generate`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${QRISPY_TOKEN}`,
+        'X-API-Token': QRISPY_TOKEN,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         amount: amount,
-        order_id: orderId, // QRISpy pake order_id kita
-        callback_url: `https://${req.headers.host}/api/qris-webhook`,
-        // Tambahin field lain kalau QRISpy butuh
+        payment_reference: orderId,
+        return_url: `https://${req.headers.host}/api/qris-webhook`
       })
     });
 
     const qrisData = await qrisRes.json();
     
+    if (qrisData.status !== 'success') {
+      return res.status(500).json({ error: 'QRISpy error', detail: qrisData });
+    }
+
     // Simpan ke Redis
     await redis.set(`order:${orderId}`, {
       status: 'pending',
       phone: phone || 'unknown',
       productId: productId,
       amount: amount,
-      qrisId: qrisData.id || qrisData.qris_id, // sesuaikan response QRISpy
-      qrisUrl: qrisData.qr_url || qrisData.qr_string,
+      qrisId: qrisData.data.qris_id,
+      qrisUrl: qrisData.data.qris_image_url,
+      expiresAt: qrisData.data.expired_at,
       createdAt: Date.now()
     });
 
     res.status(200).json({
       success: true,
       orderId: orderId,
-      qrisId: qrisData.id,
-      qrUrl: qrisData.qr_url, // URL QR code buat ditampilkan
+      qrisId: qrisData.data.qris_id,
+      qrUrl: qrisData.data.qris_image_url,
+      qrBase64: qrisData.data.qris_image_base64,
+      expiresIn: qrisData.data.expires_in_seconds,
       status: 'pending'
     });
   } catch (err) {
