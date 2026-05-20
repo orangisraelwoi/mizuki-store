@@ -983,58 +983,7 @@ if (timeLeft <= 0) {
     const prodKey = order.product.includes('Drip') ? 'drip' : 'mod';
     const keys = getKeys();
     const dur = order.duration;
-    if (keys[prodKey][dur] 
-<script>
-// AUTO-INJECTED: Redis My Keys Loader (auto-detect user data)
-function getUserPhone() {
-  // Coba semua kemungkinan key
-  const raw = localStorage.getItem('mizuki_users') || localStorage.getItem('userPhone') || localStorage.getItem('phone') || localStorage.getItem('wa') || localStorage.getItem('nomor') || localStorage.getItem('user');
-  if (!raw) return null;
-  
-  try {
-    const parsed = JSON.parse(raw);
-    // Kalau array, ambil yang logged in
-    if (Array.isArray(parsed)) {
-      const current = parsed.find(u => u.isLoggedIn || u.loggedIn || u.current) || parsed[0];
-      return current?.phone || current?.wa || current?.nomor || current?.number || current?.tel || current?.hp || null;
-    }
-    // Kalau object
-    if (typeof parsed === 'object') {
-      return parsed.phone || parsed.wa || parsed.nomor || parsed.number || parsed.tel || parsed.hp || null;
-    }
-  } catch(e) {}
-  
-  // Kalau string langsung (nomor WA)
-  if (/^[d+]/.test(raw)) return raw;
-  return null;
-}
-
-async function loadMyKeys() {
-  const phone = getUserPhone();
-  if (!phone) { console.log('No phone found'); return; }
-  
-  try {
-    const res = await fetch('/api/get-my-keys', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone })
-    });
-    const keys = await res.json();
-    const el = document.getElementById('myKeysContainer') || document.querySelector('[id*="key"]') || document.querySelector('[class*="key"]');
-    if (!el) return;
-    if (keys.length === 0) {
-      el.innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:48px;">📦</div><p>Belum ada key yang diterima. Beli dulu di store!</p><button onclick="location.href=\'#store\'" style="background:#a855f7;color:white;border:none;padding:12px 24px;border-radius:8px;margin-top:16px;cursor:pointer;">🛒 KE STORE</button></div>';
-      return;
-    }
-    el.innerHTML = keys.map(k => `<div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-weight:bold;color:#a855f7;">${k.product || 'Key'}</span><span style="background:#22c55e;color:white;padding:4px 12px;border-radius:20px;font-size:12px;">✅ AKTIF</span></div><div onclick="navigator.clipboard.writeText('${k.key}')" style="background:rgba(0,0,0,0.3);padding:12px;border-radius:8px;font-family:monospace;cursor:pointer;word-break:break-all;">🔑 ${k.key}<br><small style="color:#888;">📋 Tap to copy</small></div><div style="margin-top:8px;font-size:12px;color:#888;">📅 ${k.assignedAt ? new Date(k.assignedAt).toLocaleDateString('id-ID') : 'Baru saja'}</div></div>`).join('');
-  } catch (e) { console.error('❌ Gagal load keys:', e); }
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => { loadMyKeys(); setInterval(loadMyKeys, 5000); });
-} else { loadMyKeys(); setInterval(loadMyKeys, 5000); }
-</script>
-</body></body> keys[prodKey][dur].length > 0) {
+    if (keys[prodKey][dur] </body></body> keys[prodKey][dur].length > 0) {
       const assignedKey = keys[prodKey][dur].shift();
       saveKeys(keys);
       order.status = 'completed';
