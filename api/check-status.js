@@ -1,5 +1,8 @@
 import redis from './_lib/redis.js';
 
+const QRISPY_API_URL = 'https://qris.id/api/v1'; // GANTI KALAU ENDPOINT BEDA
+const QRISPY_TOKEN = process.env.QRISPY_API_TOKEN;
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -17,41 +20,49 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // TODO: Cek QRISpy di sini
-    // const qrisStatus = await fetch('https://qris.id/api/v1/status', {...});
-    
-    // Kalau masih pending, biarin
+    // Kalau udah completed, return langsung
     if (order.status === 'completed') {
-      return res.status(200).json({ 
-        status: 'completed', 
+      return res.status(200).json({
+        status: 'completed',
         key: order.key,
-        orderId 
+        orderId
       });
     }
 
-    // Kalau udah paid tapi belum assign key, auto-assign!
-    if (order.status === 'paid' && !order.key) {
+    // Cek status ke QRISpy (polling)
+    const qrisRes = await fetch(`${QRISPY_API_URL}/status/${order.qrisId}`, {
+      headers: { 'Authorization': `Bearer ${QRISPY_TOKEN}` }
+    });
+    const qrisData = await qrisRes.json();
+
+    // Kalau QRISpy bilang sukses/paid
+    if (qrisData.status === 'success' || qrisData.status === 'paid') {
+      order.status = 'paid';
+      await redis.set(`order:${orderId}`, order);
+      
+      // Auto assign key!
       await fetch(`https://${req.headers.host}/api/assign-key`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          orderId, 
-          phone: order.phone, 
-          productId: order.productId 
+        body: JSON.stringify({
+          orderId,
+          phone: order.phone,
+          productId: order.productId
         })
       });
       
       const updated = await redis.get(`order:${orderId}`);
-      return res.status(200).json({ 
-        status: updated.status, 
+      return res.status(200).json({
+        status: updated.status,
         key: updated.key,
-        orderId 
+        orderId
       });
     }
 
-    res.status(200).json({ 
+    res.status(200).json({
       status: order.status,
-      orderId 
+      qrisStatus: qrisData.status,
+      orderId
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
