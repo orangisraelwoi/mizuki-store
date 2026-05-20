@@ -454,9 +454,93 @@
             saveKeys(keys);
         }
 
-        function getPrices() { return JSON.parse(localStorage.getItem('mizuki_prices')); }
+        
+// === AUTO-SYNC KE REDIS (HYBRID) ===
+const PRODUCT_MAP = {
+  '1d': 'Drip Client 1 Day', '3d': 'Drip Client 3 Day', 
+  '7d': 'Drip Client 7 Day', '30d': 'Drip Client 30 Day'
+};
+
+async function syncKeysToRedisAsync(keysData) {
+  if (!keysData) return;
+  
+  // Sync drip keys
+  if (keysData.drip) {
+    for (const [dur, keys] of Object.entries(keysData.drip)) {
+      if (keys && keys.length > 0) {
+        const productId = 'drip-' + dur;
+        await syncToRedis(productId, keys);
+      }
+    }
+  }
+  
+  // Sync mod keys
+  if (keysData.mod) {
+    for (const [dur, keys] of Object.entries(keysData.mod)) {
+      if (keys && keys.length > 0) {
+        const productId = 'mod-' + dur;
+        await syncToRedis(productId, keys);
+      }
+    }
+  }
+}
+
+async function syncToRedis(productId, keysArray) {
+  try {
+    await fetch('/api/init-stock', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        productId: productId,
+        productName: PRODUCT_MAP[productId.split('-')[1]] || productId,
+        keys: keysArray
+      })
+    });
+    console.log('☁️ Synced ' + productId + ': ' + keysArray.length + ' keys');
+  } catch(e) {
+    console.error('Sync failed:', e);
+  }
+}
+
+// === LOAD STOCK DARI REDIS (REAL-TIME) ===
+async function loadStockFromRedis() {
+  const products = ['drip-1d','drip-3d','drip-7d','drip-30d','mod-1d','mod-3d','mod-7d','mod-30d'];
+  
+  for (const pid of products) {
+    try {
+      const res = await fetch('/api/get-stock?productId=' + pid);
+      const data = await res.json();
+      
+      // Update badge stock di store
+      const badges = document.querySelectorAll('[data-stock="'+pid+'"]');
+      badges.forEach(el => {
+        el.textContent = data.remaining + ' tersedia';
+        el.style.color = data.remaining > 0 ? '#22c55e' : '#ef4444';
+      });
+      
+      // Update tombol beli
+      const buyBtns = document.querySelectorAll('[data-buy="'+pid+'"]');
+      buyBtns.forEach(btn => {
+        btn.disabled = data.remaining === 0;
+        btn.textContent = data.remaining > 0 ? 'Beli Sekarang' : 'Stock Habis';
+      });
+      
+    } catch(e) {}
+  }
+}
+
+// Auto refresh stock tiap 10 detik
+setInterval(loadStockFromRedis, 10000);
+
+function getPrices() { return JSON.parse(localStorage.getItem('mizuki_prices')); }
         function getKeys() { return JSON.parse(localStorage.getItem('mizuki_keys')); }
-        function saveKeys(k) { localStorage.setItem('mizuki_keys', JSON.stringify(k)); }
+        function saveKeys(k) { 
+  // Simpan ke localStorage (cara lama)
+  localStorage.setItem('mizuki_keys', JSON.stringify(k));
+  
+  // Auto-sync ke Redis (baru!)
+  syncKeysToRedisAsync(k);
+}
         function getOrders() { return JSON.parse(localStorage.getItem('mizuki_orders')); }
         function saveOrders(o) { localStorage.setItem('mizuki_orders', JSON.stringify(o)); }
         function getUsers() { return JSON.parse(localStorage.getItem('mizuki_users')); }
