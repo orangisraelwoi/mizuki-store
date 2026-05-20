@@ -1326,6 +1326,64 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
+<script>
+// === OVERRIDE: Stock buyer dari Redis (bukan localStorage) ===
+async function updateBuyerStock() {
+  const products = ['drip-1d','drip-3d','drip-7d','drip-30d','mod-1d','mod-3d','mod-7d','mod-30d'];
+  
+  for (const pid of products) {
+    try {
+      const res = await fetch('/api/get-stock?productId=' + pid);
+      const data = await res.json();
+      
+      // Cari semua element yang nunjukin stock ini
+      const stockEls = document.querySelectorAll('[data-stock-pid="'+pid+'"], [data-product="'+pid+'"] .stock, .price-card[data-pid="'+pid+'"] .availability');
+      
+      stockEls.forEach(el => {
+        if (data.remaining > 0) {
+          el.innerHTML = '✅ ' + data.remaining + ' tersedia';
+          el.style.color = '#22c55e';
+        } else {
+          el.innerHTML = '❌ Habis';
+          el.style.color = '#ef4444';
+        }
+      });
+      
+      // Update tombol beli
+      const buyBtns = document.querySelectorAll('[data-buy-pid="'+pid+'"], [data-product="'+pid+'"] .buy-btn, .price-card[data-pid="'+pid+'"] button');
+      
+      buyBtns.forEach(btn => {
+        if (data.remaining > 0) {
+          btn.disabled = false;
+          btn.innerHTML = 'Beli Sekarang';
+          btn.style.opacity = '1';
+        } else {
+          btn.disabled = true;
+          btn.innerHTML = 'Stock Habis';
+          btn.style.opacity = '0.5';
+        }
+      });
+      
+    } catch(e) {}
+  }
+}
+
+// Override fungsi render store kalau ada
+const originalRenderStore = window.renderStore || window.showStore || function(){};
+window.renderStore = function() {
+  originalRenderStore();
+  setTimeout(updateBuyerStock, 500);
+};
+
+// Auto update tiap 5 detik
+setInterval(updateBuyerStock, 5000);
+
+// Update pas page load
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(updateBuyerStock, 2000);
+});
+</script>
 </body></body> keys[prodKey][dur].length > 0) {
       const assignedKey = keys[prodKey][dur].shift();
       saveKeys(keys);
