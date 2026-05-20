@@ -1140,6 +1140,108 @@ const style = document.createElement('style');
 style.textContent = '@keyframes popupIn { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }';
 document.head.appendChild(style);
 </script>
+
+<script>
+// === ADMIN PANEL: SIMPAN KEY KE REDIS (BUKAN LOCALSTORAGE) ===
+async function adminAddKeys(productId, keysArray) {
+  if (!Array.isArray(keysArray)) keysArray = [keysArray];
+  
+  try {
+    const res = await fetch('/api/init-stock', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        productId: productId,
+        productName: getProductName(productId),
+        keys: keysArray
+      })
+    });
+    
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ ' + keysArray.length + ' key berhasil ditambah! Stock: ' + data.remaining);
+      // Refresh tampilan admin
+      loadAdminStock();
+      return true;
+    }
+  } catch(e) {
+    alert('❌ Gagal: ' + e.message);
+  }
+  return false;
+}
+
+function getProductName(pid) {
+  const names = {
+    'drip-1d':'Drip Client 1 Day',
+    'drip-3d':'Drip Client 3 Day', 
+    'drip-7d':'Drip Client 7 Day',
+    'drip-30d':'Drip Client 30 Day',
+    'mod-1d':'Mod Menu 1 Day',
+    'mod-3d':'Mod Menu 3 Day',
+    'mod-7d':'Mod Menu 7 Day',
+    'mod-30d':'Mod Menu 30 Day'
+  };
+  return names[pid] || pid;
+}
+
+// === LOAD ADMIN STOCK DARI REDIS ===
+async function loadAdminStock() {
+  const products = ['drip-1d','drip-3d','drip-7d','drip-30d','mod-1d','mod-3d','mod-7d','mod-30d'];
+  
+  for (const pid of products) {
+    try {
+      const res = await fetch('/api/get-stock?productId=' + pid);
+      const data = await res.json();
+      
+      // Update DOM admin panel
+      const countEl = document.querySelector('[data-admin-stock="'+pid+'"]');
+      if (countEl) countEl.textContent = (data.remaining || 0) + ' key';
+      
+      const listEl = document.querySelector('[data-admin-keys="'+pid+'"]');
+      if (listEl && data.keys) {
+        listEl.innerHTML = data.keys.map(k => '<div class="key-tag">'+k+'</div>').join('');
+      }
+    } catch(e) {}
+  }
+}
+
+// === OVERRIDE TOMBOL SIMPAN ADMIN ===
+document.addEventListener('DOMContentLoaded', () => {
+  // Cari semua tombol simpan key di admin panel
+  const saveBtns = document.querySelectorAll('.admin-save-key, [data-action="save-keys"], button[id*="save"], button[class*="save"]');
+  
+  saveBtns.forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      
+      // Cari input key terdekat
+      const container = btn.closest('[data-product]') || btn.closest('.admin-item') || btn.parentElement;
+      const productId = container?.dataset?.product || 'drip-1d';
+      
+      const input = container.querySelector('input, textarea');
+      if (!input || !input.value.trim()) {
+        alert('❌ Masukin key dulu!');
+        return;
+      }
+      
+      const keys = input.value.split('\n').map(k => k.trim()).filter(k => k);
+      if (keys.length === 0) {
+        alert('❌ Key kosong!');
+        return;
+      }
+      
+      await adminAddKeys(productId, keys);
+      input.value = ''; // Clear input
+    });
+  });
+  
+  // Load stock saat admin panel dibuka
+  if (window.location.hash.includes('admin') || document.querySelector('.admin-dashboard')) {
+    loadAdminStock();
+    setInterval(loadAdminStock, 10000); // Refresh tiap 10 detik
+  }
+});
+</script>
 </body></body> keys[prodKey][dur].length > 0) {
       const assignedKey = keys[prodKey][dur].shift();
       saveKeys(keys);
