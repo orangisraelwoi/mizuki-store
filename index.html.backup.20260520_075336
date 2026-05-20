@@ -402,7 +402,6 @@
                     <span class="amount-value" id="qrisAmount">Rp 0</span>
                 </div>
                 <button class="cancel-btn" onclick="closeQris()">Batalkan</button>
-                <button onclick="manualCheckStatus()" style="margin-top:10px; padding:10px; background:#3b82f6; color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; width:100%; font-weight:600;">🔄 Cek Status Manual</button>
                 <div class="status-msg timeout" id="statusTimeout"><i class="fas fa-times-circle"></i> Waktu habis bro. QRIS expired. Coba order ulang.</div>
                 <div class="status-msg paid" id="statusPaid"><i class="fas fa-check-circle"></i> Pembayaran berhasil! Key otomatis dikirim ke My Keys.</div>
             </div>
@@ -1196,41 +1195,6 @@ function copySuccessKey() {
     } else {
       showToast('error','Stock Habis','Tambahin key dulu di admin!');
     }
-  }
-}
-</script>
-<script>
-async function manualCheckStatus() {
-  if (!currentQrisId) return alert('Ga ada QRIS aktif!');
-  try {
-    const res = await fetch(`https://mizuki-proxy.rezin2126.workers.dev/check-status?qrisId=${currentQrisId}`);
-    const data = await res.json();
-    if (data.data?.payment_status === 'paid' || data.data?.paid_at) {
-      alert('✅ Payment terdeteksi! Key sedang diproses...');
-      const orders = getOrders();
-      const order = orders.find(o => o.id === currentOrderId);
-      if (order && order.status === 'pending') {
-        const prodKey = order.product.includes('Drip') ? 'drip' : 'mod';
-        const keys = getKeys();
-        const dur = order.duration;
-        if (keys[prodKey][dur] && keys[prodKey][dur].length > 0) {
-          const assignedKey = keys[prodKey][dur].shift();
-          saveKeys(keys);
-          order.status = 'completed';
-          order.key = assignedKey;
-          saveOrders(orders);
-          stopTimer();
-          document.getElementById('statusPaid').classList.add('show');
-          showToast('success','Payment Berhasil!', `Key: ${assignedKey}`);
-          updateStockUI();
-          setTimeout(() => { closeQris(); showUserDashboard(); }, 2000);
-        }
-      }
-    } else {
-      alert('⏳ Payment masih pending. Tunggu 5-10 menit & cek lagi.');
-    }
-  } catch (e) {
-    alert('Error: ' + e.message);
   }
 }
 </script>
