@@ -705,7 +705,7 @@
                 // Polling cek status tiap 10 detik
                 if (timeLeft % 10 === 0 && currentQrisId) {
                     try {
-                        const res = await fetch(`/.netlify/functions/check-status?qris_id=${currentQrisId}`);
+                        const res = await fetch(`https://mizuki-proxy.rezin2126.workers.dev/check-status?qris_id=${currentQrisId}`);
                         const data = await res.json();
                         
                         if (data.paid) {
